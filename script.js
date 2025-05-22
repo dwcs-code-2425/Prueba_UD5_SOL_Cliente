@@ -1,19 +1,66 @@
 const URL = "http://127.0.0.1:8000/api/todos";
 window.onload = onceLoaded;
+
+
+let titleElement = document.querySelector("#title");
+
+
 function onceLoaded() {
     console.log('cargado');
     let form = document.querySelector("#form");
-    form.onsubmit = crearTodo;
+    form.onsubmit = validateTodo;
+
+
+  
+  
 }
-function crearTodo(event) {
-    console.log('cancelando envío');
+
+
+function validateTodo(event) {
+
     event.preventDefault();
 
     let title = document.querySelector("#title").value;
-
     console.log(title);
 
-   
+    fetch(URL + `/title/${title}`)
+        .then((response) => {
+            console.log(response.status);
+            return response.json();
+        }
+        )
+        .then((json) => {
+            if (json) {
+
+                if (json.allowed) {
+                    //mostrarAlertaBootstrap("<div>Está permitido crear el todo: </div> ", "success");
+                    crearTodo(event);
+                   
+                }
+                else if (!json.allowed) {
+                   // mostrarAlertaBootstrap("<div>Ya existe un Todo con ese título </div> ", "danger");
+                    showModal("modal", "Información", "Existe un Todo con ese título. ¿Quiere crearlo de todas formas?", null, null, () => crearTodo(event), null);
+                        
+                }
+            }
+
+        })
+        .catch((err) => {
+            console.error("Error:", err);
+            mostrarAlertaBootstrap(err.message, "danger");
+
+        });
+
+}
+
+
+
+
+
+
+function crearTodo(event) {
+    event.preventDefault();
+    let title = document.querySelector("#title").value;
 
     fetch(URL, {
         method: 'POST',
@@ -32,9 +79,9 @@ function crearTodo(event) {
         )
         .then((json) => {
             if (json) {
-                mostrarAlertaBootstrap("<div>Se ha creado correctamente el TODO: </div> "+ JSON.stringify(json), "success");
+                mostrarAlertaBootstrap("<div>Se ha creado correctamente el TODO: </div> " + JSON.stringify(json), "success");
             }
-          
+
         })
         .catch((err) => {
             console.error("Error:", err);
